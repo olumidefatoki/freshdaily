@@ -1,5 +1,4 @@
 <?php
-
 function iniTransaction() {
   global $db;
   $db->StartTrans();
@@ -112,7 +111,7 @@ function getCropByCropCategory($cropCategoryId) {
 
 }
 
-function getOrderByFarm($farmId, $start) {
+function getOrderListByFarm($farmId, $start) {
   global $db;
   //$db->debug=true;
   $sql = "SELECT  m.name marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
@@ -124,16 +123,24 @@ function getOrderByFarm($farmId, $start) {
   return $db->GetAll($sql);
 
 }
-function getOrderDetailsByOrderId($orderId) {
+function getOrderDetailsByOrderId($orderRef) {
+  global $db;
+  //$db->debug=true;
+  $sql = "SELECT  c.name cropName ,pod.qty qty, pod.amount   FROM  produce_order ord
+          INNER JOIN produce_order_details pod ON pod.produce_order_id  = ord.id
+          INNER JOIN crop c ON c.id = pod.crop_id
+          WHERE ord.order_reference = '" .$orderRef."'" ;
+  return $db->GetAll($sql);
+
+}
+function getOrderByRef($refId) {
   global $db;
   //$db->debug=true;
   $sql = "SELECT  m.name marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
           ord.creation_date creationDate , ord.amount  FROM  produce_order ord
           INNER JOIN markerter m  ON m.id  = ord.marketer_id
-          WHERE farm_id = " .$farmId . "
-          ORDER BY ord.creation_date DESC
-          LIMIT " . $start . " , 10 ";
-  return $db->GetAll($sql);
+          WHERE order_reference = '" .$refId ."' ";
+  return $db->getRow($sql);
 
 }
 

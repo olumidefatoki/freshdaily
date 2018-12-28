@@ -17,7 +17,7 @@ if(empty($farmId) || empty($start) )
 else{
   $orderList = array();
 
-  $rs = getOrderByFarm($farmId , $start);
+  $rs = getOrderListByFarm($farmId , $start);
   foreach ($rs as $v) {
     $orderArray = array('marketerName' => $v["marketerName"], "marketerPhone" => $v["marketerPhone"],"orderReference" => $v["orderReference"],
                         "date" => $v["creationDate"],"amount" => $v["amount"]);
