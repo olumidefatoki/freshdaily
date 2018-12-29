@@ -9,15 +9,17 @@ include('../../constants.php');
 //?state_id=1&lga_id=1&farm_name=test&address=test&contact_name=test&contact_phone=080
 $farmId = filter_var(isset($_REQUEST['farm_id']) ? TRIM($_REQUEST['farm_id']) : NULL, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
 $start = filter_var(isset($_REQUEST['start']) ? TRIM($_REQUEST['start']) : null, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
+$statusId = filter_var(isset($_REQUEST['status_id']) ? TRIM($_REQUEST['status_id']) : null, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
+
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
 
 
-if(empty($farmId) || empty($start) )
+if(empty($farmId) || empty($start) || empty($statusId) )
   $response["message"]="INCOMPLETE PARAMETER";
 else{
   $orderList = array();
 
-  $rs = getOrderListByFarm($farmId , $start);
+  $rs = getOrderListByFarm($farmId , $start, $statusId);
   foreach ($rs as $v) {
     $orderArray = array('marketerName' => $v["marketerName"], "marketerPhone" => $v["marketerPhone"],"orderReference" => $v["orderReference"],
                         "date" => $v["creationDate"],"amount" => $v["amount"]);

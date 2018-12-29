@@ -7,18 +7,21 @@ include('../../constants.php');
 
 //?state_id=1&lga_id=1&farm_name=test&address=test&contact_name=test&contact_phone=080
 
+$corpCategory = filter_var(isset($_REQUEST['crop_category']) ? TRIM($_REQUEST['crop_category']) : null, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
 
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
-
+if(empty($corpCategory)  )
+  $response["message"]="INCOMPLETE PARAMETER";
+else{
     $corpList = array();
-    $rs = getAllCropList();
+    $rs = getCropByCropCategory($corpCategory);
     foreach ($rs as $v) {
-      $cropArray = array('id' => $v["id"], "cropName" => $v["cropName"], "cropCategory" => $v["cropCategory"]);
+      $cropArray = array('id' => $v["id"], "Name" => $v["name"]);
       $corpList[]=$cropArray;
     }
     $response["code"]=1;
     $response["message"]=$corpList;
-//}
+}
 header('Content-type: application/json; charset=utf-8');
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
 @ob_flush();

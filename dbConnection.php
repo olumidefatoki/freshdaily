@@ -82,12 +82,12 @@ function isExistingUsername($username) {
   else
     return true;
 }
-function insertNewUser($username,$password)
+function insertNewUser($username,$password,$notId)
 {
   global $db;
   //$db->debug=true;
-  $sql = "INSERT INTO user(username,password, status_id, user_type) VALUES "
-  ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) ."),1,1)";
+  $sql = "INSERT INTO user(username,password, notificiation_id,status_id, user_type) VALUES "
+  ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) .") ,'".$notId."',1,1)";
   $val = $db->Execute($sql);
   return $db->INSERT_ID();
 }
@@ -111,15 +111,16 @@ function getCropByCropCategory($cropCategoryId) {
 
 }
 
-function getOrderListByFarm($farmId, $start) {
+function getOrderListByFarm($farmId, $start, $statusId) {
   global $db;
   //$db->debug=true;
   $sql = "SELECT  m.name marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
           ord.creation_date creationDate , ord.amount  FROM  produce_order ord
           INNER JOIN markerter m  ON m.id  = ord.marketer_id
-          WHERE farm_id = " .$farmId . "
+          WHERE ord.farm_id = " .$farmId . "
+          AND ord.status_id = " .$statusId . "
           ORDER BY ord.creation_date DESC
-          LIMIT " . $start . " , 10 ";
+          LIMIT " . $start . " , " . RECORD_SIZE ;
   return $db->GetAll($sql);
 
 }
@@ -158,6 +159,35 @@ function genCode($id) {
   $db->Execute('COMMIT');
 
   return $code;
+}
+
+function getCropCategory() {
+  global $db;
+  $sql = "SELECT id, name FROM crop_category "  ;
+  return $db->GetAll($sql);
+}
+function getStatusList() {
+  global $db;
+  $sql = "SELECT id, name FROM status "  ;
+  return $db->GetAll($sql);
+}
+function getAllCropList() {
+  global $db;
+  //$db->debug=true;
+  $sql = " SELECT c.id, c.name cropName, cc.name cropCategory, cc.id cropCategoryId FROM crop c
+          INNER JOIN crop_category cc ON c.crop_category_id = cc .id "  ;
+  return $db->GetAll($sql);
+}
+
+function isExistingFarmId($farmId) {
+  global $db;
+
+  $sql = "SELECT name FROM farm WHERE id = " . $db->qstr(trim($farmId), get_magic_quotes_gpc()) ." ";
+  $rs = $db->getRow($sql);
+  if (!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
 }
 
  ?>

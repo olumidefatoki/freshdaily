@@ -18,5 +18,7 @@
 
   $curdate = date("Y-m-d");
 
+  define('RECORD_SIZE', '20');
+
 
   ?>
