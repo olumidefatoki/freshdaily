@@ -14,7 +14,7 @@ $statusId = filter_var(isset($_REQUEST['status_id']) ? TRIM($_REQUEST['status_id
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
 
 
-if(empty($farmId) || empty($start) || empty($statusId) )
+if(empty($farmId) ||  empty($statusId) )
   $response["message"]="INCOMPLETE PARAMETER";
 else{
   $orderList = array();

@@ -28,15 +28,6 @@ function unLockTables() {
   $db->Execute($sql);
 }
 
-function isValidToken($token) {
-  global $db;
-
-  $sql = "SELECT id FROM users WHERE reset_token = " . $db->qstr($token) . " ";
-  $rs = $db->GetRow($sql);
-  if ($rs && is_array($rs) && sizeof($rs))
-    return true;
-  return false;
-}
 function insertFarm($farm_name,$contact_name,$contact_phone,$state_id,$lga_id,$email)
 {
   global $db;
@@ -87,7 +78,7 @@ function insertNewUser($username,$password,$notId)
   global $db;
   //$db->debug=true;
   $sql = "INSERT INTO user(username,password, notificiation_id,status_id, user_type) VALUES "
-  ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) .") ,'".$notId."',1,1)";
+  ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) .") ," . $db->qstr($notId, get_magic_quotes_gpc()) . ",1,1)";
   $val = $db->Execute($sql);
   return $db->INSERT_ID();
 }
@@ -117,10 +108,10 @@ function getOrderListByFarm($farmId, $start, $statusId) {
   $sql = "SELECT  m.name marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
           ord.creation_date creationDate , ord.amount  FROM  produce_order ord
           INNER JOIN markerter m  ON m.id  = ord.marketer_id
-          WHERE ord.farm_id = " .$farmId . "
-          AND ord.status_id = " .$statusId . "
+          WHERE ord.farm_id = " . $db->qstr($farmId, get_magic_quotes_gpc()) . "
+          AND ord.status_id = " .$db->qstr($statusId, get_magic_quotes_gpc()) . "
           ORDER BY ord.creation_date DESC
-          LIMIT " . $start . " , " . RECORD_SIZE ;
+          LIMIT $start , " . RECORD_SIZE ;
   return $db->GetAll($sql);
 
 }
@@ -158,7 +149,7 @@ function genCode($id) {
 
   $db->Execute('COMMIT');
 
-  return $code;
+  return strtoupper($code);
 }
 
 function getCropCategory() {
@@ -181,13 +172,74 @@ function getAllCropList() {
 
 function isExistingFarmId($farmId) {
   global $db;
-
+  //$db->debug=true;
   $sql = "SELECT name FROM farm WHERE id = " . $db->qstr(trim($farmId), get_magic_quotes_gpc()) ." ";
   $rs = $db->getRow($sql);
   if (!$rs || !is_array($rs) || !sizeof($rs))
     return false;
   else
     return true;
+}
+function updateUserNotificationId($farmId,$not_id)
+{
+  global $db;
+  //$db->debug=true;
+  $sql = " UPDATE  user  SET notificiation_id = '" . $not_id . "'   WHERE id IN (
+           SELECT user_id FROM farm where id = " . $db->qstr(trim($farmId), get_magic_quotes_gpc()) ." ) ";
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+  //return $db->INSERT_ID();
+}
+
+function updateUserPassword($farmId,$password)
+{
+  global $db;
+  //$db->debug=true;
+  $sql = " UPDATE  user  SET password = md5(" . $db->qstr($password, get_magic_quotes_gpc()) .")   WHERE id IN (
+           SELECT user_id FROM farm where id = " . $db->qstr(trim($farmId), get_magic_quotes_gpc()) ." ) ";
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+  //return $db->INSERT_ID();
+}
+
+function isValidPassword($farmId,$password) {
+  global $db;
+  //$db->debug=true;
+  $sql = " SELECT 1 FROM user u
+            INNER JOIN farm f  ON f.user_id =u.id
+            WHERE f.id = " . $db->qstr(trim($farmId), get_magic_quotes_gpc()) ."
+            AND u.password = md5(". $db->qstr($password, get_magic_quotes_gpc()) .")";
+            $rs = $db->getRow($sql);
+  if(!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
+}
+function updateFarmProfile($farmId,$contactPersonName,$contactPersonPhoneNumber) {
+  global $db;
+  //$db->debug=true;
+  $sql = " UPDATE  farm  SET contact_name = " . $db->qstr($contactPersonName, get_magic_quotes_gpc()) ." ,
+            contact_phone_number = " . $db->qstr($contactPersonPhoneNumber, get_magic_quotes_gpc()) ."
+            WHERE id = " . $farmId ;
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+}
+function updateOrderStatus($orderId,$statusId) {
+  global $db;
+  //$db->debug=true;
+  $sql = " UPDATE   produce_order  SET status_id = " . $db->qstr($statusId, get_magic_quotes_gpc()) ."
+          WHERE   order_reference = " . $db->qstr($orderId, get_magic_quotes_gpc());
+
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
 }
 
  ?>

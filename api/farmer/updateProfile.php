@@ -1,7 +1,7 @@
 <?php
-include ("../adodb5/adodb.inc.php");
-include('../dbConnection.php');
-include('../constants.php');
+include ("../../adodb5/adodb.inc.php");
+include('../../dbConnection.php');
+include('../../constants.php');
 
 //global $db;
 //$db->debug=true;
@@ -16,8 +16,22 @@ $response = array('code' => 0, "message" => "Problem Understanding Request!");
 if(empty($contactPersonName) && empty($contactPersonPhoneNumber) && empty($farmId))
   $response["message"]="INCOMPLETE PARAMETER";
 else{
-    $response["code"]=1;
-    $response["message"]="Successful";
+  if (! isExistingFarmId($farmId)) {
+      $response["message"] = " Invalid Farm Id";
+  }
+  else{
+    iniTransaction();
+    $val = updateFarmProfile($farmId,$contactPersonName,$contactPersonPhoneNumber);
+    if($val != "1" || $db->hasFailedTrans()) {
+      completeTransaction(false);
+      $response["message"]="An Error Occurred";
+    }
+  else{
+     completeTransaction(true);
+     $response["code"]=1;
+     $response["message"]="Successful";
+    }
+  }
 }
 
 header('Content-type: application/json; charset=utf-8');

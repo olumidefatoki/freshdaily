@@ -3,8 +3,8 @@
   date_default_timezone_set('UTC');
   define('DB_DRIVER', 'mysqli');
   define('DB_SERVER', 'localhost');
-  define('DB_USERNAME', 'root');//latausr
-  define('DB_PASSWORD', 'root');//Lusr-2016
+  define('DB_USERNAME', 'freshdai');//latausr
+  define('DB_PASSWORD', '19IlvLw70x');//Lusr-2016
   define('DB_NAME', 'fresh_daily');
 
 
