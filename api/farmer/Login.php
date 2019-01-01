@@ -5,6 +5,7 @@ include('../../constants.php');
 
 //global $db;
 //$db->debug=true;
+//Rabiu
 
 $username = filter_var(isset($_REQUEST['username']) ? TRIM($_REQUEST['username']) : null, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
 $password = filter_var(isset($_REQUEST['password']) ? TRIM($_REQUEST['password']) : null, FILTER_SANITIZE_STRING, FILTER_FLAG_ENCODE_LOW | FILTER_FLAG_STRIP_HIGH);
