@@ -242,4 +242,57 @@ function updateOrderStatus($orderId,$statusId) {
   else return 1;
 }
 
+function insertNewStock($farmId,$cropList)
+{
+  global $db;
+  //$db->debug=true;
+  $sql0 = "INSERT INTO farm_stock(farm_id,crop_id, qty,creation_date) VALUES";
+
+  $sql = "";
+  foreach ($cropList as $v) {
+    //var_dump($v);  //echo($v["corpid"]);
+    $std = new stdClass();
+    $std = $v;
+    $sql .= " (" . $db->qstr($farmId, get_magic_quotes_gpc()) . ", " . $db->qstr($std->corpid, get_magic_quotes_gpc())  . ",
+	 " . $db->qstr($std->qty, get_magic_quotes_gpc()) . ",NOW()), ";
+  }
+    $sql = substr($sql, 0, -2);
+    //echo " sql : " + $sql;
+    $sql0 .= $sql;
+    $val = $db->Execute($sql0);
+    if (!$val)
+      return 0;
+    return 1;
+}
+
+function fetchStockOutQty($farmId) {
+  global $db;
+  //$db->debug=true;
+  $sql = " SELECT pod.crop_id,
+            IFNULL(SUM( CASE WHEN po.status_id = 3 THEN pod.qty ELSE '0' END ), 0) AS 'PENDING',
+            IFNULL(SUM( CASE WHEN po.status_id = 6 THEN pod.qty ELSE '0' END ), 0) AS 'ACCEPTED',
+            IFNULL(SUM( CASE WHEN po.status_id = 11 THEN pod.qty ELSE '0' END ), 0) AS 'REJECTED'
+            FROM produce_order po
+            INNER JOIN produce_order_details pod ON pod.produce_order_id = po.id
+            WHERE po.farm_id =  " . $farmId . "
+            group by pod.crop_id";
+  return  $db->getRow($sql);
+}
+function fetchStockInQty($farmId) {
+  global $db;
+  //$db->debug=true;
+  $sql = " SELECT farm_id,crop_id, sum(qty) qty FROM farm_stock
+          WHERE  farm_id = " . $farmId . "
+          group by farm_id,crop_id ";
+  return  $db->getRow($sql);
+}
+/*SELECT po.farm_id,pod.crop_id,
+IFNULL(SUM( CASE WHEN po.status_id = 3 THEN pod.qty ELSE '0' END ), 0) AS 'PENDING',
+IFNULL(SUM( CASE WHEN po.status_id = 6 THEN pod.qty ELSE '0' END ), 0) AS 'ACCEPTED',
+IFNULL(SUM( CASE WHEN po.status_id = 11 THEN pod.qty ELSE '0' END ), 0) AS 'REJECTED'
+FROM produce_order po
+inner JOIN produce_order_details pod ON pod.produce_order_id = po.id  WHERE 1 group by po.farm_id,pod.crop_id
+*/
+//SELECT `farm_id`,`crop_id`, sum(`qty`) qty FROM `farm_stock` WHERE 1 group by `farm_id`,`crop_id`
+
  ?>
