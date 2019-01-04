@@ -253,7 +253,7 @@ function insertNewStock($farmId,$cropList)
     //var_dump($v);  //echo($v["corpid"]);
     $std = new stdClass();
     $std = $v;
-    $sql .= " (" . $db->qstr($farmId, get_magic_quotes_gpc()) . ", " . $db->qstr($std->corpid, get_magic_quotes_gpc())  . ",
+    $sql .= " (" . $db->qstr($farmId, get_magic_quotes_gpc()) . ", " . $db->qstr($std->cropid, get_magic_quotes_gpc())  . ",
 	 " . $db->qstr($std->qty, get_magic_quotes_gpc()) . ",NOW()), ";
   }
     $sql = substr($sql, 0, -2);
@@ -268,31 +268,54 @@ function insertNewStock($farmId,$cropList)
 function fetchStockOutQty($farmId) {
   global $db;
   //$db->debug=true;
-  $sql = " SELECT pod.crop_id,
+  /*$sql = " SELECT pod.crop_id,
             IFNULL(SUM( CASE WHEN po.status_id = 3 THEN pod.qty ELSE '0' END ), 0) AS 'PENDING',
             IFNULL(SUM( CASE WHEN po.status_id = 6 THEN pod.qty ELSE '0' END ), 0) AS 'ACCEPTED',
             IFNULL(SUM( CASE WHEN po.status_id = 11 THEN pod.qty ELSE '0' END ), 0) AS 'REJECTED'
             FROM produce_order po
             INNER JOIN produce_order_details pod ON pod.produce_order_id = po.id
             WHERE po.farm_id =  " . $farmId . "
-            group by pod.crop_id";
-  return  $db->getRow($sql);
+            group by pod.crop_id";*/
+  $sql = "SELECT pod.crop_id cropId, IFNULL(SUM(pod.qty),0) stock_out
+          FROM produce_order po
+          INNER JOIN produce_order_details pod ON pod.produce_order_id = po.id
+          WHERE po.farm_id = ". $farmId . " AND po.status_id  IN(3,6)
+          GROUP BY pod.crop_id";
+  return  $db->GetAll($sql);
 }
 function fetchStockInQty($farmId) {
   global $db;
   //$db->debug=true;
-  $sql = " SELECT farm_id,crop_id, sum(qty) qty FROM farm_stock
-          WHERE  farm_id = " . $farmId . "
-          group by farm_id,crop_id ";
-  return  $db->getRow($sql);
+  $sql = " SELECT fs.crop_id cropId,C.name cropName, cc.name cropCategory ,IFNULL(SUM(qty),0) stock_in
+            FROM farm_stock  fs
+            INNER JOIN crop c ON c.id = fs.crop_id
+            INNER JOIN crop_category cc ON cc.id = crop_category_id
+            WHERE  fs.farm_id = " . $farmId . "
+          GROUP BY farm_id,crop_id ";
+  return  $db->GetAll($sql);
 }
-/*SELECT po.farm_id,pod.crop_id,
-IFNULL(SUM( CASE WHEN po.status_id = 3 THEN pod.qty ELSE '0' END ), 0) AS 'PENDING',
-IFNULL(SUM( CASE WHEN po.status_id = 6 THEN pod.qty ELSE '0' END ), 0) AS 'ACCEPTED',
-IFNULL(SUM( CASE WHEN po.status_id = 11 THEN pod.qty ELSE '0' END ), 0) AS 'REJECTED'
-FROM produce_order po
-inner JOIN produce_order_details pod ON pod.produce_order_id = po.id  WHERE 1 group by po.farm_id,pod.crop_id
-*/
-//SELECT `farm_id`,`crop_id`, sum(`qty`) qty FROM `farm_stock` WHERE 1 group by `farm_id`,`crop_id`
+function getFetchFarmList() {
+  global $db;
+  //$db->debug=true;
+  $sql = "SELECT st.id farmId, f.name farmName, f.contact_name, f.contact_phone_number, st.name stateName,
+          IF(LOCATE('_',l.name), SUBSTRING(l.name, (LOCATE('_', l.name) + 1)), l.name) lgaName
+          FROM farm f
+          INNER JOIN LGA l ON l.id = f.lga_id
+          INNER JOIN  states st ON st.id = l.state_id "  ;
+  return $db->GetAll($sql);
+}
 
+function getOrderListByMarkerter($marketerId, $start) {
+  global $db;
+  //$db->debug=true;
+  $sql = "SELECT st.name status,  m.name marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
+          ord.creation_date creationDate , ord.amount  FROM  produce_order ord
+          INNER JOIN markerter m  ON m.id  = ord.marketer_id
+          INNER JOIN status st on st.id = ord.status_id
+          WHERE ord.marketer_id = " . $db->qstr($marketerId, get_magic_quotes_gpc()) . "
+          ORDER BY ord.creation_date DESC
+          LIMIT $start , " . RECORD_SIZE ;
+  return $db->GetAll($sql);
+
+}
  ?>
