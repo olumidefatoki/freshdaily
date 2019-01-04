@@ -33,7 +33,7 @@ else{
   }
   else{
    iniTransaction();
-   $userId = insertNewUser($username,$password,$not_id);
+   $userId = insertNewUser($username,$password,$not_id,1);
    $val = insertFarm($farm_name,$contact_name,$contact_phone,$state_id,$lga_id,$userId);
    if ($val != "1" || $db->hasFailedTrans()) {
      completeTransaction(false);

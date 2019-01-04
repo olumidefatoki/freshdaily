@@ -63,22 +63,25 @@ function isExistingFarmContactPhoneNumber($farmContactPhoneNumber) {
   else
     return true;
 }
+
 function isExistingUsername($username) {
   global $db;
-
-  $sql = "SELECT $username FROM user WHERE username = " . $db->qstr(trim($username), get_magic_quotes_gpc()) ." ";
+  $db->debug=true;
+  $sql = "SELECT username FROM user WHERE username = " . $db->qstr(trim($username), get_magic_quotes_gpc()) ." ";
   $rs = $db->getRow($sql);
   if (!$rs || !is_array($rs) || !sizeof($rs))
     return false;
   else
     return true;
 }
-function insertNewUser($username,$password,$notId)
+
+function insertNewUser($username,$password,$notId,$userType)
 {
   global $db;
   //$db->debug=true;
   $sql = "INSERT INTO user(username,password, notificiation_id,status_id, user_type) VALUES "
-  ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) .") ," . $db->qstr($notId, get_magic_quotes_gpc()) . ",1,1)";
+          ."("  . $db->qstr($username, get_magic_quotes_gpc()) . ",md5(" . $db->qstr($password, get_magic_quotes_gpc()) .") ,
+          " . $db->qstr($notId, get_magic_quotes_gpc()) . ",1," . $userType . ")";
   $val = $db->Execute($sql);
   return $db->INSERT_ID();
 }
@@ -317,5 +320,42 @@ function getOrderListByMarkerter($marketerId, $start) {
           LIMIT $start , " . RECORD_SIZE ;
   return $db->GetAll($sql);
 
+}
+
+function isValidMarkerter($username,$password) {
+  global $db;
+  //$db->debug=true;
+  $sql = " SELECT m.id markerterId,  m.name markerterName,  m.phone_number markerterPhoneNumber
+            FROM markerter m
+            INNER JOIN user u  ON m.user_id =u.id
+            WHERE u.username = " . $db->qstr(trim($username), get_magic_quotes_gpc()) ."
+            AND u.password = md5(". $db->qstr($password, get_magic_quotes_gpc()) .")";
+  return  $db->getRow($sql);
+
+}
+
+function isExistingMarketerPhoneNumber($marketerPhoneNumber) {
+  global $db;
+
+  $sql = "SELECT phone_number FROM markerter WHERE phone_number = " . $db->qstr($marketerPhoneNumber, get_magic_quotes_gpc())." ";
+  $rs = $db->getRow($sql);
+  if (!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
+}
+
+function insertMarkerter($markerterName,$markerterPhoneNumber,$address,$userId)
+{
+  global $db;
+  //$db->debug=true;
+  $sql = "INSERT INTO markerter(`name`, `phone_number`, `address`, `user_id`, `status_id`) VALUES
+  ("  . $db->qstr($markerterName, get_magic_quotes_gpc()) . "," . $db->qstr($markerterPhoneNumber, get_magic_quotes_gpc()) . ",
+  " . $db->qstr($address, get_magic_quotes_gpc()) . " , ". $userId .",1)";
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+  //return $db->INSERT_ID();
 }
  ?>
