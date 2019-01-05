@@ -28,12 +28,12 @@ function unLockTables() {
   $db->Execute($sql);
 }
 
-function insertFarm($farm_name,$contact_name,$contact_phone,$state_id,$lga_id,$email)
+function insertFarm($farm_name,$contactPersonFirstName,$contactPersonLastName,$contact_phone,$state_id,$lga_id,$email)
 {
   global $db;
   //$db->debug=true;
-  $sql = "INSERT INTO farm(name, contact_name, contact_phone_number, state_id, lga_id,user_id) VALUES
-  ("  . $db->qstr($farm_name, get_magic_quotes_gpc()) . "," . $db->qstr($contact_name, get_magic_quotes_gpc()) . ",
+  $sql = "INSERT INTO farm(name, contact_person_first_name,contact_person_last_name, contact_person_phone_number, state_id, lga_id,user_id) VALUES
+  ("  . $db->qstr($farm_name, get_magic_quotes_gpc()) . "," . $db->qstr($contact_name, get_magic_quotes_gpc()) . "," . $db->qstr($contact_name, get_magic_quotes_gpc()) . ",
   " . $db->qstr($contact_phone, get_magic_quotes_gpc()) . " , " . $db->qstr($state_id, get_magic_quotes_gpc()) . ",
   " . $db->qstr($lga_id, get_magic_quotes_gpc()) .",". $db->qstr($email, get_magic_quotes_gpc()) .")";
   $val = $db->Execute($sql);
@@ -46,7 +46,7 @@ function insertFarm($farm_name,$contact_name,$contact_phone,$state_id,$lga_id,$e
 function isExistingFarmName($farmName) {
   global $db;
 
-  $sql = "SELECT name FROM farm WHERE name = " . $db->qstr(trim($farmName), get_magic_quotes_gpc()) ." ";
+  $sql = "SELECT farm_name FROM farm WHERE farm_name = " . $db->qstr(trim($farmName), get_magic_quotes_gpc()) ." ";
   $rs = $db->getRow($sql);
   if (!$rs || !is_array($rs) || !sizeof($rs))
     return false;
@@ -56,7 +56,7 @@ function isExistingFarmName($farmName) {
 function isExistingFarmContactPhoneNumber($farmContactPhoneNumber) {
   global $db;
 
-  $sql = "SELECT contact_phone_number FROM farm WHERE contact_phone_number = " . $db->qstr($farmContactPhoneNumber, get_magic_quotes_gpc())." ";
+  $sql = "SELECT contact_person_phone_number FROM farm WHERE contact_person_phone_number = " . $db->qstr($farmContactPhoneNumber, get_magic_quotes_gpc())." ";
   $rs = $db->getRow($sql);
   if (!$rs || !is_array($rs) || !sizeof($rs))
     return false;
@@ -222,10 +222,11 @@ function isValidPassword($farmId,$password) {
   else
     return true;
 }
-function updateFarmProfile($farmId,$contactPersonName,$contactPersonPhoneNumber) {
+function updateFarmProfile($farmId,$contactPersonFirstName,$contactPersonLastName,$contactPersonPhoneNumber) {
   global $db;
   //$db->debug=true;
-  $sql = " UPDATE  farm  SET contact_name = " . $db->qstr($contactPersonName, get_magic_quotes_gpc()) ." ,
+  $sql = " UPDATE  farm  SET contact_person_first_name = " . $db->qstr($contactPersonFirstName, get_magic_quotes_gpc()) ." ,
+            contact_person_Last_name = " . $db->qstr($contactPersonLastName, get_magic_quotes_gpc()) ."
             contact_phone_number = " . $db->qstr($contactPersonPhoneNumber, get_magic_quotes_gpc()) ."
             WHERE id = " . $farmId ;
   $val = $db->Execute($sql);
@@ -325,7 +326,7 @@ function getOrderListByMarkerter($marketerId, $start) {
 function isValidMarkerter($username,$password) {
   global $db;
   //$db->debug=true;
-  $sql = " SELECT m.id markerterId,  m.name markerterName,  m.phone_number markerterPhoneNumber
+  $sql = " SELECT m.id markerterId,  concat(m.first_name,' ',m.last_name) markerterName,  m.phone_number markerterPhoneNumber
             FROM markerter m
             INNER JOIN user u  ON m.user_id =u.id
             WHERE u.username = " . $db->qstr(trim($username), get_magic_quotes_gpc()) ."
@@ -345,13 +346,13 @@ function isExistingMarketerPhoneNumber($marketerPhoneNumber) {
     return true;
 }
 
-function insertMarkerter($markerterName,$markerterPhoneNumber,$address,$userId)
+function insertMarkerter($markerteFirstName,$markerterLastName,$markerterPhoneNumber,$address,$userId)
 {
   global $db;
   //$db->debug=true;
-  $sql = "INSERT INTO markerter(`name`, `phone_number`, `address`, `user_id`, `status_id`) VALUES
-  ("  . $db->qstr($markerterName, get_magic_quotes_gpc()) . "," . $db->qstr($markerterPhoneNumber, get_magic_quotes_gpc()) . ",
-  " . $db->qstr($address, get_magic_quotes_gpc()) . " , ". $userId .",1)";
+  $sql = "INSERT INTO markerter(first_name,last_name, phone_number, address, user_id, status_id) VALUES
+  ("  . $db->qstr($markerteFirstName, get_magic_quotes_gpc()) . "," . $db->qstr($markerterLastName, get_magic_quotes_gpc()) . ",
+  " . $db->qstr($markerterPhoneNumber, get_magic_quotes_gpc()) . "," . $db->qstr($address, get_magic_quotes_gpc()) . " , ". $userId .",1)";
   $val = $db->Execute($sql);
   if (!$val)
   return 0;
