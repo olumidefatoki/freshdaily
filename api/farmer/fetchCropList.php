@@ -13,7 +13,7 @@ $response = array('code' => 0, "message" => "Problem Understanding Request!");
     $corpList = array();
     $rs = getAllCropList();
     foreach ($rs as $v) {
-      $cropArray = array('id' => $v["id"], "cropName" => $v["cropName"], "cropCategory" => $v["cropCategory"]);
+      $cropArray = array('id' => $v["id"], "cropName" => $v["cropName"], "cropCategory" => $v["cropCategory"], "cropCategoryId" =>$v["cropCategoryId"]);
       $corpList[]=$cropArray;
     }
     $response["code"]=1;

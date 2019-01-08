@@ -23,9 +23,10 @@ $rs1 = fetchStockInQty($farmId);
 $cropStockList = array();
 foreach ($rs1 as $v1) {
 //var_dump($v1);
+$stockBal=$v1["stock_in"];
   foreach ($rs as $v) {
     //var_dump($v);
-    $stockBal=$v1["stock_in"];
+
     //echo 'stock_in' . $v1["stock_in"] .'<br>';
   //  echo 'stock_out' . $v["stock_out"] .'<br>';
     if ($v1["cropId"] == $v["cropId"] ) {

@@ -2,6 +2,7 @@
 include ("../../adodb5/adodb.inc.php");
 include('../../dbConnection.php');
 include('../../constants.php');
+
 //global $db;
 //$db->debug=true;
 
@@ -15,7 +16,7 @@ $response = array('code' => 0, "message" => "Problem Understanding Request!");
     $rs = getFetchFarmList();
     foreach ($rs as $v) {
       $cropArray = array('farmId' => $v["farmId"], "farmName" => $v["farmName"],
-                          'contactName' => $v["contact_name"], "contactPhoneNumber" => $v["contact_phone_number"],
+                          'contactName' => $v["contact_person_name"], "contactPhoneNumber" => $v["contact_person_phone_number"],
                           'stateName' => $v["stateName"], "lgaName" => $v["lgaName"]);
       $corpList[]=$cropArray;
     }

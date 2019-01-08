@@ -14,7 +14,7 @@ $farmId = filter_var(isset($_REQUEST['farm_id']) ? TRIM($_REQUEST['farm_id']) : 
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
 
 
-if(empty($contactPersonName) && empty($contactPersonPhoneNumber) && empty($farmId))
+if(empty($contactPersonFirstName) || empty($contactPersonLastName) || empty($contactPersonPhoneNumber) || empty($farmId))
   $response["message"]="INCOMPLETE PARAMETER";
 else{
   if (! isExistingFarmId($farmId)) {

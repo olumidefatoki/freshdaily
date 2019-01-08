@@ -34,12 +34,12 @@ else{
       $response["message"]="Farm Contact Phone Number Already Exist";
   }
   else if (isExistingNotificationId($notId)) {
-      $response["message"]="NotificationId Exist";
+      $response["message"]="Notification Id Already Exist";
   }
   else{
    iniTransaction();
    $userId = insertNewUser($username,$password,$notId,1);
-   $val = insertFarm($farmName,$contactPersonFirstName,$contactPersonLastName,$contactPersonPhoneNumber,$stateId,$lgaId,$userId);
+   $val = insertFarm($farmName,$contactPersonFirstName,$contactPersonLastName,$contactPersonPhoneNumber,$stateId,$lgaId,$userId,$address);
    if ($val != "1" || $db->hasFailedTrans()) {
      completeTransaction(false);
      $response["message"]="An Error Occurred";
