@@ -25,7 +25,9 @@ else{
   }
 
   $resposeContent = array("totalAmount" =>$res["amount"],'marketerName' => $res["marketerName"], "marketerPhone" => $res["marketerPhone"],
-                            "orderReference" => $res["orderReference"],"date" => $res["creationDate"], "orderDetailsList" => $orderDetailsList);
+                            "orderReference" => $res["orderReference"],"date" => $res["creationDate"], "orderDetailsList" => $orderDetailsList,
+                            "orderExpectedDate" => $res["order_expected_date"],"orderExpectedTime" => $res["order_expected_time"]
+                          );
 
   //$orderCrop = array('corpName' => "Rice", "qty" => "3","Measurement" => "25KG","price" => "10.00");
   //$orderCrop1 = array('corpName' => "Bean", "qty" => "3","Measurement" => "25KG","price" => "15.00");

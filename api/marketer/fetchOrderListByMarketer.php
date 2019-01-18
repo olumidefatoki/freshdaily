@@ -14,7 +14,7 @@ $start = filter_var(isset($_REQUEST['start']) ? TRIM($_REQUEST['start']) : null,
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
 
 
-if(empty($marketerId) ||  empty($start) )
+if(empty($marketerId)  )
   $response["message"]="INCOMPLETE PARAMETER";
 else{
   $orderList = array();

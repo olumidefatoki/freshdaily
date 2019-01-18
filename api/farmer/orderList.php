@@ -13,12 +13,10 @@ $statusId = filter_var(isset($_REQUEST['status_id']) ? TRIM($_REQUEST['status_id
 
 $response = array('code' => 0, "message" => "Problem Understanding Request!");
 
-
 if(empty($farmId) ||  empty($statusId) )
   $response["message"]="INCOMPLETE PARAMETER";
 else{
   $orderList = array();
-
   $rs = getOrderListByFarmByStatus($farmId , $start, $statusId);
   foreach ($rs as $v) {
     $orderArray = array('marketerName' => $v["marketerName"], "marketerPhone" => $v["marketerPhone"],"orderReference" => $v["orderReference"],

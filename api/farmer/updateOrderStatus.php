@@ -2,7 +2,7 @@
 include ("../../adodb5/adodb.inc.php");
 include('../../dbConnection.php');
 include('../../constants.php');
-
+include_once('../../PushNotification.php');
 //global $db;
 //$db->debug=true;
 
@@ -25,6 +25,11 @@ else{
    completeTransaction(true);
    $response["code"]=1;
    $response["message"]="Successful";
+
+   $obj = new SendNotification();
+   $message = "Your Order " . $orderId ." has been " . getStatusNameByStatusID($statusId) ;
+   $notId = getNotIdByOrderRef($orderId);
+   $obj->sendPushNotificationToFCMSever($notId, $message);
   }
 }
 
@@ -32,4 +37,6 @@ header('Content-type: application/json; charset=utf-8');
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
 @ob_flush();
 flush();
+
+
 ?>

@@ -17,7 +17,7 @@ $response = array('code' => 0, "message" => "Problem Understanding Request!");
     foreach ($rs as $v) {
       $cropArray = array('farmId' => $v["farmId"], "farmName" => $v["farmName"],
                           'contactName' => $v["contact_person_name"], "contactPhoneNumber" => $v["contact_person_phone_number"],
-                          'stateName' => $v["stateName"], "lgaName" => $v["lgaName"]);
+                          'stateName' => $v["stateName"], "lgaName" => $v["lgaName"],"address" => $v["address"]);
       $corpList[]=$cropArray;
     }
     $response["code"]=1;

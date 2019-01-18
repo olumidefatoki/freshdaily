@@ -131,7 +131,8 @@ function getOrderByRef($refId) {
   global $db;
 
   $sql = "SELECT  concat(m.first_name,' ',m.last_name) marketerName ,m.phone_number marketerPhone, ord.order_reference orderReference,
-          ord.creation_date creationDate , ord.amount  FROM  produce_order ord
+          ord.creation_date creationDate,ord.amount,ord.order_expected_date,ord.order_expected_time
+          FROM  produce_order ord
           INNER JOIN markerter m  ON m.id  = ord.marketer_id
           WHERE order_reference = '" .$refId ."' ";
   return $db->getRow($sql);
@@ -282,7 +283,7 @@ function fetchStockOutQty($farmId) {
   $sql = "SELECT pod.crop_id cropId, IFNULL(SUM(pod.qty),0) stock_out
           FROM produce_order po
           INNER JOIN produce_order_details pod ON pod.produce_order_id = po.id
-          WHERE po.farm_id = ". $farmId . " AND po.status_id  IN(3,6)
+          WHERE po.farm_id = ". $farmId . " AND po.status_id  IN(3,6,12)
           GROUP BY pod.crop_id";
   return  $db->GetAll($sql);
 }
@@ -300,8 +301,8 @@ function fetchStockInQty($farmId) {
 function getFetchFarmList() {
   global $db;
 
-  $sql = "SELECT st.id farmId, f.farm_name farmName, concat(f.contact_person_first_name ,' ',f.contact_person_Last_name)contact_person_name,
-          f.contact_person_phone_number, st.name stateName,
+  $sql = "SELECT f.id farmId, f.farm_name farmName, concat(f.contact_person_first_name ,' ',f.contact_person_Last_name)contact_person_name,
+          f.contact_person_phone_number, st.name stateName, f.address,
           IF(LOCATE('_',l.name), SUBSTRING(l.name, (LOCATE('_', l.name) + 1)), l.name) lgaName
           FROM farm f
           INNER JOIN LGA l ON l.id = f.lga_id
@@ -369,13 +370,14 @@ function isExistingNotificationId($notId) {
     return false;
   else
     return true;
+
 }
 
 function getOrderListByFarm($farmId, $start) {
   global $db;
 
   $sql = "SELECT st.name status,  concat(f.contact_person_first_name,' ', f.contact_person_Last_name) farmContactPersonName,
-          f.farm_name ,f.contact_person_phone_number farmContactPersonPhoneNumber, ord.order_reference orderReference,
+          f.farm_name farmName,f.contact_person_phone_number farmContactPersonPhoneNumber, ord.order_reference orderReference,
           ord.creation_date creationDate , ord.amount  FROM  produce_order ord
           INNER JOIN farm f  ON f.id  = ord.farm_id
           INNER JOIN status st on st.id = ord.status_id
@@ -385,4 +387,159 @@ function getOrderListByFarm($farmId, $start) {
   return $db->GetAll($sql);
 
 }
+
+function isExistingMarketerId($marketerId) {
+  global $db;
+
+  $sql = "SELECT 1 FROM markerter WHERE id = " . $db->qstr(trim($marketerId), get_magic_quotes_gpc()) ." ";
+  $rs = $db->getRow($sql);
+  if (!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
+}
+
+function isValidCropId($cropId) {
+  global $db;
+
+  $sql = "SELECT 1 FROM crop WHERE id = " . $db->qstr(trim($cropId), get_magic_quotes_gpc()) ." ";
+  $rs = $db->getRow($sql);
+  if (!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
+}
+
+function insertNewProduceOrder($farmId,$markerId,$amount,$orderExpectedDate,$orderExpectedTime)
+{
+  global $db;
+  $orderRef = genCode(1);
+  $sql = "INSERT INTO produce_order(order_reference, `farm_id`, `marketer_id`, `amount`,`order_expected_date`, `order_expected_time`) VALUES
+  ("  . $db->qstr($orderRef, get_magic_quotes_gpc()) . "," . $db->qstr($farmId, get_magic_quotes_gpc()) . "," . $db->qstr($markerId, get_magic_quotes_gpc()) . ",
+  " . $db->qstr($amount, get_magic_quotes_gpc()) . " , " . $db->qstr($orderExpectedDate, get_magic_quotes_gpc()) . ",
+  " . $db->qstr($orderExpectedTime, get_magic_quotes_gpc()) .")";
+  $val = $db->Execute($sql);
+  return $db->INSERT_ID();
+}
+function insertNewProduceOrderDetails($produceOrderid,$OrderDetailsList)
+{
+  global $db;
+
+  $sql0 = "INSERT INTO  produce_order_details(`produce_order_id`, `crop_id`, `qty`, `amount`) VALUES ";
+
+  $sql = "";
+  foreach ($OrderDetailsList as $v) {
+    //var_dump($v);  //echo($v["corpid"]);
+    $std = new stdClass();
+    $std = $v;
+    $sql .= "("  . $db->qstr($produceOrderid, get_magic_quotes_gpc()) . "," . $db->qstr($std->cropid, get_magic_quotes_gpc()) . "," . $db->qstr($std->qty, get_magic_quotes_gpc()) . ",
+            " . $db->qstr($std->amount, get_magic_quotes_gpc()) . ") ,";
+  }
+    $sql = substr($sql, 0, -2);
+    //echo " sql : " + $sql;
+    $sql0 .= $sql;
+    $val = $db->Execute($sql0);
+    if (!$val)
+      return 0;
+    return 1;
+}
+function updateMarketerProfile($marketerId,$marketerFirstName,$marketerLastName,$markerterPhone) {
+  global $db;
+
+  $sql = " UPDATE  markerter  SET first_name = " . $db->qstr($marketerFirstName, get_magic_quotes_gpc()) ." ,
+            last_name = " . $db->qstr($marketerLastName, get_magic_quotes_gpc()) .",
+            phone_number = " . $db->qstr($markerterPhone, get_magic_quotes_gpc()) ."
+            WHERE id = " .  $db->qstr($marketerId, get_magic_quotes_gpc()) ;
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+}
+
+function isValidMarketerPassword($marketerId,$password) {
+  global $db;
+
+  $sql = " SELECT 1 FROM user u
+            INNER JOIN markerter m  ON m.user_id =u.id
+            WHERE m.id = " . $db->qstr(trim($marketerId), get_magic_quotes_gpc()) ."
+            AND u.password = md5(". $db->qstr($password, get_magic_quotes_gpc()) .")";
+            $rs = $db->getRow($sql);
+  if(!$rs || !is_array($rs) || !sizeof($rs))
+    return false;
+  else
+    return true;
+}
+
+function updateMarketerPassword($marketerId,$password)
+{
+  global $db;
+
+  $sql = " UPDATE  user  SET password = md5(" . $db->qstr($password, get_magic_quotes_gpc()) .")   WHERE id IN (
+           SELECT user_id FROM markerter where id = " . $db->qstr(trim($marketerId), get_magic_quotes_gpc()) ." ) ";
+  $val = $db->Execute($sql);
+  if (!$val)
+  return 0;
+  else return 1;
+  //return $db->INSERT_ID();
+}
+function getNotIdByFarmId($farmId) {
+  global $db;
+
+  $sql = " SELECT u.notificiation_id FROM user u
+          INNER JOIN farm f ON f.user_id = u.id
+           WHERE  f.id = " . $farmId  ;
+  return $db->GetOne($sql);
+}
+function getNotIdByOrderRef($orderRef) {
+  global $db;
+
+  $sql = " SELECT u.notificiation_id FROM markerter m
+           INNER JOIN produce_order por on por.marketer_id = m.id
+           INNER JOIN user u ON u.id = m.user_id
+           WHERE  por.order_reference = " ."'$orderRef'";
+  return $db->GetOne($sql);
+}
+function getStatusNameByStatusID($statusId) {
+  global $db;
+
+  $sql = " SELECT name FROM status WHERE id = " . $statusId  ;
+  return $db->GetOne($sql);
+}
+
+function insertNewFarmCropPrice($farmId,$cropList)
+{
+  global $db;
+
+  $sql0 = "INSERT INTO farm_crop_price(farm_id, crop_id, price,creation_date) VALUES";
+
+  $sql = "";
+  foreach ($cropList as $v) {
+    //var_dump($v);  //echo($v["corpid"]);
+    $std = new stdClass();
+    $std = $v;
+    $sql .= " (" . $db->qstr($farmId, get_magic_quotes_gpc()) . "," . $db->qstr($std->corpid, get_magic_quotes_gpc()) . ",
+              " . $db->qstr($std->price, get_magic_quotes_gpc()) . ",NOW()), ";
+  }
+    $sql = substr($sql, 0, -2);
+    //echo " sql : " + $sql;
+    $sql0 .= $sql;
+    $val = $db->Execute($sql0);
+    if (!$val)
+      return 0;
+    return 1;
+}
+
+function getFarmCropPrice($farmId,$cropId) {
+  global $db;
+
+  $sql = "SELECT FORMAT(IFNULL(SUM(price),0),2) price
+          FROM  farm_crop_price fcp
+          WHERE  fcp.farm_id =  " . $db->qstr($farmId, get_magic_quotes_gpc()) ."
+          AND fcp.crop_id =  " . $db->qstr($cropId, get_magic_quotes_gpc()) . "
+          ORDER BY 1 LIMIT 1 ";
+          return $db->GetOne($sql);
+}
+
+
+
  ?>

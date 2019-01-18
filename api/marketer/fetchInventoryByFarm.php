@@ -33,7 +33,7 @@ foreach ($rs1 as $v1) {
       $stockBal = $v1["stock_in"] - $v["stock_out"] ;
     }
   }
-  $cropStock =  array('corpid' => $v1["cropId"],"cropName" => $v1["cropName"],"cropCategory" => $v1["cropCategory"],
+  $cropStock =  array('cropId' => $v1["cropId"],"cropName" => $v1["cropName"],"cropCategory" => $v1["cropCategory"],
                       "qty" => $stockBal,"price" => 12.00,'cropCategoryId' => $v1["cropCategoryId"] );
   $cropStockList[]= $cropStock;
 }
